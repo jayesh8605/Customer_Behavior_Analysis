@@ -7,7 +7,7 @@ group by gender
 --Q2. Which customers used a discount but still spent more than the average purchase amount ?
 select customer_id, purchase_amount
 from customer
-where discount_applied= 'Yes' and purchase_amount >= (select avg(purchase_amount)from customer)
+where discount_applied= 'Yes' and purchase_amount > (select avg(purchase_amount)from customer)
 
 --Q3. Which are the top 5 products with the highest average review rating?
 select item_purchased , round(avg(review_rating::NUMERIC),2) as Average_Product_Rating
@@ -31,15 +31,23 @@ group by subscription_status
 order by total_revenue, avg_spend desc
 
 --Q6. Which 5 products have the highest percentage of purchases with discounts applied?
+-- Q6. Which 5 products have the highest percentage of purchases with discounts applied?
+
 SELECT
     item_purchased,
-    COUNT(*) AS total_purchases,
-    SUM(CASE WHEN discount_applied = 'Yes' THEN 1 ELSE 0 END) AS discounted_purchases
+    ROUND(
+        100.0 * SUM(
+            CASE
+                WHEN discount_applied = 'Yes' THEN 1
+                ELSE 0
+            END
+        ) / COUNT(*),
+        2
+    ) AS discount_percentage
 FROM customer
 GROUP BY item_purchased
-ORDER BY discounted_purchases DESC
+ORDER BY discount_percentage DESC
 LIMIT 5;
-
 
 --Q7. Segment customers into New, Returning, and Loyal based on their 
 --total number of previous purchases, and show the count of each segment.
